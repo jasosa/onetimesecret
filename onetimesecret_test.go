@@ -38,9 +38,10 @@ func TestGenerateSuccesfully(t *testing.T) {
 	ts := httptest.NewServer(th)
 
 	expectedSecretKey := "k5o8n8cyvbt2xwasgbx6r3b5whs35s"
+	expectedSecretValue := "zpuOBYWPa6*3"
 	expectedServerRequest := "/generate?ttl=3600"
 	client := onetimesecret.NewClient("user", "token", ts.URL)
-	secretKey, err := client.Generate(3600)
+	secretKey, secretvalue, err := client.Generate(3600)
 
 	if th.calls[0] != expectedServerRequest {
 		t.Fatalf("Expected server request key was %q but got %q", expectedServerRequest, th.calls[0])
@@ -53,13 +54,16 @@ func TestGenerateSuccesfully(t *testing.T) {
 	if secretKey != expectedSecretKey {
 		t.Fatalf("Expected secret key was %q but got %q", expectedSecretKey, secretKey)
 	}
+	if secretvalue != expectedSecretValue {
+		t.Fatalf("Expected secret value was %q but got %q", expectedSecretValue, secretvalue)
+	}
 }
 
 func TestGenerateErrorExecutingRequest(t *testing.T) {
 	expectedErrorMessage := "error executing request"
 
 	client := onetimesecret.NewClient("user", "token", "")
-	_, err := client.Generate(3600)
+	_, _, err := client.Generate(3600)
 
 	if err != nil && !strings.HasPrefix(err.Error(), expectedErrorMessage) {
 		t.Fatalf("Error %q was expected but got %q", expectedErrorMessage, err.Error())
@@ -69,7 +73,7 @@ func TestGenerateErrorCreatingRequest(t *testing.T) {
 	expectedErrorMessage := "error creating request"
 
 	client := onetimesecret.NewClient("user", "token", "://127.0.0.1:3245")
-	_, err := client.Generate(3600)
+	_, _, err := client.Generate(3600)
 
 	if err != nil && !strings.HasPrefix(err.Error(), expectedErrorMessage) {
 		t.Fatalf("Error %q was expected but got %q", expectedErrorMessage, err.Error())
@@ -84,7 +88,7 @@ func TestGenerateErrorUnmarshalingResponse(t *testing.T) {
 	expectedErrorMessage := "error unmarshaling response"
 
 	client := onetimesecret.NewClient("user", "errorToken", ts.URL)
-	_, err := client.Generate(0)
+	_, _, err := client.Generate(0)
 
 	if th.calls[0] != expectedServerRequest {
 		t.Fatalf("Expected server request key was %q but got %q", expectedServerRequest, th.calls[0])
